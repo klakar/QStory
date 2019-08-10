@@ -1,0 +1,38 @@
+#map {
+    z-index: -1;
+}
+
+#story {
+    position: absolute;
+    z-index: 10;
+    right: 5em;
+    top: 0em;
+    width: 50em;
+    height: 100%;
+    background: #fff9;
+    padding: 1em;
+}
+
+#story_header {
+    font-size: 24pt;
+    font-weight: bold;
+    text-align: center;
+}
+
+#story_body {
+    font-size: 14pt;
+    height: 80%;
+}
+
+#story_footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5em;
+    width: 25em;
+    margin: 0 auto;
+}
+
+#story_footer button {
+    margin: 5px;
+}
