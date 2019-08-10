@@ -65,7 +65,7 @@ PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
 #	* Windows:
 #	  AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins'
 
-QGISDIR=/home/klakar/.local/share/QGIS/QGIS3/profiles/default/python/plugins/
+QGISDIR=.local/share/QGIS/QGIS3/profiles/default
 
 #################################################
 # Normally you would not need to edit below here
@@ -128,7 +128,7 @@ deploy: compile doc transcompile
 	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	# Copy extra directories if any
-	(foreach EXTRA_DIR,(EXTRA_DIRS), cp -R (EXTRA_DIR) (HOME)/(QGISDIR)/python/plugins/(PLUGINNAME)/;)
+	$(foreach EXTRA_DIR,$(EXTRA_DIRS), cp -R $(EXTRA_DIR) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/;)
 
 
 # The dclean target removes compiled python files from plugin directory
