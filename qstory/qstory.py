@@ -21,7 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QByteArray
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
@@ -207,6 +207,18 @@ class QStory:
         del self.toolbar
 
     #--------------------------------------------------------------------------
+    # Here are the functions for the QStory dock widget
+
+    def story_generate(self):
+        self.dockwidget.txt_body.setPlainText("Det fungerar.")
+
+
+    def story_content_tab(self):
+        if self.dockwidget.tab_widget.currentIndex() == 1:
+            html = '<div id="story_header">' + self.dockwidget.txt_title.text() + '</div>'
+            html += '<div id="story_body">' + self.dockwidget.txt_body.toPlainText() + '</div>' 
+            self.dockwidget.web_view.setHtml(html)
+    #--------------------------------------------------------------------------
 
     def run(self):
         """Run method that loads and starts the plugin"""
@@ -230,3 +242,15 @@ class QStory:
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
+
+            # Catch events when buttons clicked in panel
+            # Each must have corresponding def name():
+            #self.dockwidget.btn_open.clicked.connect(self.)
+            #self.dockwidget.btn_save.clicked.connect(self.)
+            #self.dockwidget.btn_delete.clicked.connect(self.)
+            #self.dockwidget.btn_previous.clicked.connect(self.)
+            #self.dockwidget.btn_next.clicked.connect(self.)
+            #self.dockwidget.btn_new.clicked.connect(self.)
+            #self.dockwidget.btn_center.clicked.connect(self.)
+            self.dockwidget.btn_generate.clicked.connect(self.story_generate)
+            self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)
