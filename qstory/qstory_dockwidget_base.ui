@@ -133,7 +133,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="cmb_page"/>
+       <widget class="QComboBox" name="cmb_page">
+        <property name="currentText">
+         <string notr="true"/>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btn_next">

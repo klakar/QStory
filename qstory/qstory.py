@@ -31,10 +31,21 @@ from .resources import *
 from .qstory_dockwidget import QStoryDockWidget
 import os.path
 
+#------------------------------------------------------------------------
+# QStory global variables
+qstory_header = []          # Content for the story header div-tag
+qstory_body = []            # Content for the story body div-tag
+qstory_location = []        # Map location lon,lat string for the story page
+qstory_zoom = []            # Map zoom level integer for the story page
+current_index = 0           # Currently active page index in the widget
+
+#------------------------------------------------------------------------
+
 
 class QStory:
     """QGIS Plugin Implementation."""
 
+    
     def __init__(self, iface):
         """Constructor.
 
@@ -205,9 +216,138 @@ class QStory:
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+    
+    #--------------------------------------------------------------------------
+    # QStory initiate functions
+    
+    def qstory_initiate(self):
+        
+        # Use Global variables
+        global qstory_header
+        global qstory_body
+        global qstory_location
+        global qstory_zoom
+        global current_index
+        current_index = 0
+        qstory_header.clear()
+        qstory_body.clear()
+        qstory_location.clear()
+        qstory_zoom.clear()
+
+        # Initial Preview "help" text
+        help_text = '<h3>QStory</h3><p>Here there will be some simple "Get Started" text...'
+        self.dockwidget.web_view.setHtml(help_text)
+
+        # Set first story page
+        self.dockwidget.cmb_page.clear()
+        self.dockwidget.cmb_page.addItem('1')
+        
+        qstory_header.insert(0, 'First Page')
+        qstory_body.insert(0, '<p>This is a simple story</p><p>Replace <b>this</b> text with your content.</p>')
+        qstory_location.insert(0, '14,45')
+        qstory_zoom.insert(0, 4)
+
+        # Update the widget
+        self.update_page(0)
+
+        
 
     #--------------------------------------------------------------------------
-    # Here are the functions for the QStory dock widget
+    # QStory Helper functions
+
+    # Delete the current page and decrease the page numbers
+    def delete_page(self):
+
+        # Use Global variables
+        global qstory_header
+        global qstory_body
+        global qstory_location
+        global qstory_zoom
+        global current_index
+        
+        # Remove current index from all lists
+        qstory_header.pop(current_index)
+        qstory_body.pop(current_index)
+        qstory_location.pop(current_index)
+        qstory_zoom.pop(current_index)
+
+        # Remove last page number from page selector
+        self.dockwidget.cmb_page.removeItem(self.dockwidget.cmb_page.count()-1)
+
+        # Update the page form
+        if self.dockwidget.cmb_page.count() == current_index:
+            current_index -= 1
+            if current_index == -1:
+                self.qstory_initiate()
+        self.update_page(current_index)
+
+
+
+    # Add a new page after the current and increase the page numbers
+    def add_page(self):
+
+        # Use Global variables
+        global qstory_header
+        global qstory_body
+        global qstory_location
+        global qstory_zoom
+        
+        number_of_pages = self.dockwidget.cmb_page.count()      # How many items in the page combo box
+        new_page = current_index + 1                            # Index for the new page is current index + 1
+        # Add a page number at the end of the selector list
+        new_page_number = number_of_pages + 1
+        self.dockwidget.cmb_page.addItem(str(new_page_number))
+
+        # Insert the page in the lists
+        qstory_header.insert(new_page, 'New Title')
+        qstory_body.insert(new_page, 'New Content')
+        qstory_location.insert(new_page, '0,0')
+        qstory_zoom.insert(new_page, 6)
+
+        # Show the new page
+        self.update_page(new_page)
+        
+
+    # Update the current page with the list content for selected page number
+    def update_page(self, page_index):
+        global current_index
+        
+        # First save the current content to the lists
+        if current_index != page_index:
+            qstory_header[current_index] = self.dockwidget.txt_title.text()
+            qstory_body[current_index] = self.dockwidget.txt_body.toPlainText()
+            qstory_location[current_index] = self.dockwidget.txt_center.text()
+            qstory_zoom[current_index] = self.dockwidget.spin_zoom.value()
+        
+        # Then get and update the form with selected content
+        self.dockwidget.txt_title.setText(qstory_header[page_index])
+        self.dockwidget.txt_body.setPlainText(qstory_body[page_index])
+        self.dockwidget.txt_center.setText(qstory_location[page_index])
+        self.dockwidget.cmb_page.setCurrentIndex(page_index)
+        self.dockwidget.spin_zoom.setValue(qstory_zoom[page_index])
+        current_index = page_index
+        self.dockwidget.cmb_page.setCurrentIndex(page_index)
+        
+
+        # Update button status
+        self.update_status(current_index)
+
+        # Update preview
+        self.story_content_tab()
+
+    # Update button and forms active/disable depending on current index
+    def update_status(self, page_index):
+        if self.dockwidget.cmb_page.count() >= 2:
+            self.dockwidget.btn_next.setEnabled(True)
+            self.dockwidget.btn_previous.setEnabled(True)
+        if current_index == 0:
+            self.dockwidget.btn_previous.setEnabled(False)
+        if current_index == self.dockwidget.cmb_page.count()-1:
+            self.dockwidget.btn_next.setEnabled(False)
+
+
+    #--------------------------------------------------------------------------
+    # Here are "smaller" functions for the QStory dock widget
 
     def story_generate(self):
         self.dockwidget.txt_body.setPlainText("Det fungerar.")
@@ -218,12 +358,25 @@ class QStory:
             html = '<div id="story_header">' + self.dockwidget.txt_title.text() + '</div>'
             html += '<div id="story_body">' + self.dockwidget.txt_body.toPlainText() + '</div>' 
             self.dockwidget.web_view.setHtml(html)
+
+    def get_selected(self):
+        self.update_page(self.dockwidget.cmb_page.currentIndex())
+
+    def next_page(self):
+        self.update_page(current_index + 1)
+
+    def previous_page(self):
+        self.update_page(current_index - 1)
+
+ 
     #--------------------------------------------------------------------------
 
     def run(self):
         """Run method that loads and starts the plugin"""
 
         if not self.pluginIsActive:
+            global current_index
+
             self.pluginIsActive = True
 
             #print "** STARTING QStory"
@@ -243,14 +396,18 @@ class QStory:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
+            # Initiate the dockwidget
+            self.qstory_initiate()
+
             # Catch events when buttons clicked in panel
             # Each must have corresponding def name():
             #self.dockwidget.btn_open.clicked.connect(self.)
             #self.dockwidget.btn_save.clicked.connect(self.)
-            #self.dockwidget.btn_delete.clicked.connect(self.)
-            #self.dockwidget.btn_previous.clicked.connect(self.)
-            #self.dockwidget.btn_next.clicked.connect(self.)
-            #self.dockwidget.btn_new.clicked.connect(self.)
+            self.dockwidget.btn_delete.clicked.connect(self.delete_page)
+            self.dockwidget.btn_previous.clicked.connect(self.previous_page)
+            self.dockwidget.btn_next.clicked.connect(self.next_page)
+            self.dockwidget.btn_new.clicked.connect(self.add_page)
             #self.dockwidget.btn_center.clicked.connect(self.)
             self.dockwidget.btn_generate.clicked.connect(self.story_generate)
             self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)
+            self.dockwidget.cmb_page.activated[str].connect(self.get_selected)
