@@ -127,6 +127,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="btn_previous">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Previous</string>
         </property>
@@ -173,7 +176,7 @@
       <item>
        <widget class="QTabWidget" name="tab_widget">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -283,19 +286,19 @@ If you include &quot;style&quot; they will override any style from the template.
        </spacer>
       </item>
       <item>
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Lon,Lat</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLineEdit" name="txt_center">
         <property name="text">
          <string notr="true"/>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btn_center">
-        <property name="text">
-         <string>Get Center</string>
         </property>
        </widget>
       </item>
@@ -328,6 +331,13 @@ If you include &quot;style&quot; they will override any style from the template.
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_center">
+        <property name="text">
+         <string>Copy from Canvas</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

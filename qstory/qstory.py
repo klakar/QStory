@@ -30,6 +30,12 @@ from .resources import *
 # Import the code for the DockWidget
 from .qstory_dockwidget import QStoryDockWidget
 import os.path
+from math import log
+
+# Import functions from QGIS
+from qgis.utils import iface
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
+
 
 #------------------------------------------------------------------------
 # QStory global variables
@@ -347,10 +353,22 @@ class QStory:
 
 
     #--------------------------------------------------------------------------
-    # Here are "smaller" functions for the QStory dock widget
+    # Here are "smaller" functions for the QStory dock widgetfrom qgis.utils import iface
+
 
     def story_generate(self):
-        self.dockwidget.txt_body.setPlainText("Det fungerar.")
+        # Start by updating all and move to the first page
+        self.update_page(0)
+
+        # Create a local variable to hold the generated JS string
+        export_story = 'story_title = %s\n' % (str(qstory_header))
+        export_story += 'story_content = %s\n' % (str(qstory_body))
+        export_story += 'story_location = ['        # Break apart the strings in location to a new list of float lists. I.E. [[0,0], [0,0]]
+        for single_location in qstory_location:
+            export_story += '%s, ' % (str([float(i) for i in single_location.split(',')]))
+        export_story = export_story[:-2] + ']\n'    # Remove last comma and blank space from loop above
+        export_story += 'story_zoom = %s\n' % (str(qstory_zoom))
+        self.dockwidget.txt_body.setPlainText(export_story)
 
 
     def story_content_tab(self):
@@ -367,6 +385,17 @@ class QStory:
 
     def previous_page(self):
         self.update_page(current_index - 1)
+
+    def get_center(self):
+        center = iface.mapCanvas().center()
+        canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
+        qstoryCrs = QgsCoordinateReferenceSystem(4326)
+        transform = QgsCoordinateTransform(canvasCrs, qstoryCrs, QgsProject.instance())
+        canvas_X, canvas_Y = transform.transform(center.x(), center.y())
+        self.dockwidget.txt_center.setText(str(round(canvas_X,3)) + ',' + str(round(canvas_Y,3)))
+        canvas_scale = iface.mapCanvas().scale()
+        canvas_zoom = round(log(591657550.500000 /(canvas_scale/2))/log(2))
+        self.dockwidget.spin_zoom.setValue(canvas_zoom)
 
  
     #--------------------------------------------------------------------------
@@ -407,7 +436,7 @@ class QStory:
             self.dockwidget.btn_previous.clicked.connect(self.previous_page)
             self.dockwidget.btn_next.clicked.connect(self.next_page)
             self.dockwidget.btn_new.clicked.connect(self.add_page)
-            #self.dockwidget.btn_center.clicked.connect(self.)
+            self.dockwidget.btn_center.clicked.connect(self.get_center)
             self.dockwidget.btn_generate.clicked.connect(self.story_generate)
             self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)
             self.dockwidget.cmb_page.activated[str].connect(self.get_selected)
