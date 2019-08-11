@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QByteArray
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -31,6 +31,7 @@ from .resources import *
 from .qstory_dockwidget import QStoryDockWidget
 import os.path
 from math import log
+import json
 
 # Import functions from QGIS
 from qgis.utils import iface
@@ -351,6 +352,20 @@ class QStory:
         if current_index == self.dockwidget.cmb_page.count()-1:
             self.dockwidget.btn_next.setEnabled(False)
 
+    # Generate a story JS variable for export and save-file
+    def generate_output(self):
+        
+        # Create a local variable to hold the generated JS string
+        export_content = [qstory_header, qstory_body, qstory_location, qstory_zoom]
+        #export_story = 'story_title = %s;\n' % (str(qstory_header))
+        #export_story += 'story_content = %s;\n' % (str(qstory_body))
+        #export_story += 'story_location = ['        # Break apart the strings in location to a new list of float lists. I.E. [[0,0], [0,0]]
+        #for single_location in qstory_location:
+        #    export_story += '%s, ' % (str([float(i) for i in single_location.split(',')]))
+        #export_story = export_story[:-2] + '];\n'    # Remove last comma and blank space from loop above
+        #export_story += 'story_zoom = %s;\n' % (str(qstory_zoom))
+        return export_content
+
 
     #--------------------------------------------------------------------------
     # Here are "smaller" functions for the QStory dock widgetfrom qgis.utils import iface
@@ -360,33 +375,26 @@ class QStory:
         # Start by updating all and move to the first page
         self.update_page(0)
 
-        # Create a local variable to hold the generated JS string
-        export_story = 'story_title = %s\n' % (str(qstory_header))
-        export_story += 'story_content = %s\n' % (str(qstory_body))
-        export_story += 'story_location = ['        # Break apart the strings in location to a new list of float lists. I.E. [[0,0], [0,0]]
-        for single_location in qstory_location:
-            export_story += '%s, ' % (str([float(i) for i in single_location.split(',')]))
-        export_story = export_story[:-2] + ']\n'    # Remove last comma and blank space from loop above
-        export_story += 'story_zoom = %s\n' % (str(qstory_zoom))
-        self.dockwidget.txt_body.setPlainText(export_story)
+        # Do something with the content... (to be updated)
+        self.dockwidget.txt_body.setPlainText(str(self.generate_output()))
 
 
-    def story_content_tab(self):
+    def story_content_tab(self):    # Check if the second (preview) tab is active, and in that case update preview of the story page
         if self.dockwidget.tab_widget.currentIndex() == 1:
             html = '<div id="story_header">' + self.dockwidget.txt_title.text() + '</div>'
             html += '<div id="story_body">' + self.dockwidget.txt_body.toPlainText() + '</div>' 
             self.dockwidget.web_view.setHtml(html)
 
-    def get_selected(self):
+    def get_selected(self):         # Change story page to the one selected in the page combo box
         self.update_page(self.dockwidget.cmb_page.currentIndex())
 
-    def next_page(self):
+    def next_page(self):            # Go to next story page
         self.update_page(current_index + 1)
 
-    def previous_page(self):
+    def previous_page(self):        # Go to previous story page
         self.update_page(current_index - 1)
 
-    def get_center(self):
+    def get_center(self):           #Get the center coordinate from the canvas, transform it to wgs-84 and estimate zoom level from scale.
         center = iface.mapCanvas().center()
         canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
         qstoryCrs = QgsCoordinateReferenceSystem(4326)
@@ -396,6 +404,46 @@ class QStory:
         canvas_scale = iface.mapCanvas().scale()
         canvas_zoom = round(log(591657550.500000 /(canvas_scale/2))/log(2))
         self.dockwidget.spin_zoom.setValue(canvas_zoom)
+
+    def save_story(self):
+        # Create file
+        filename = QFileDialog.getSaveFileName(None, 'Save Story As...','Once_Upon_A_Time.qstory', 'QStory FIles (*.qstory);; QStory Files (*.qstory)')
+        # Open file and save generated content to it.
+        if filename[0] != '':          # Don't save if dialog is cancelled
+            file = open(filename[0], 'w')
+            json.dump(self.generate_output(), file)
+            file.close()
+
+    def open_story(self):
+        # Use global variables
+        global qstory_header
+        global qstory_body
+        global qstory_location
+        global qstory_zoom
+
+        current_index = 0
+        qstory_header.clear()
+        qstory_body.clear()
+        qstory_location.clear()
+        qstory_zoom.clear()
+
+        # Open a QStory file (basically a textfile with JSON syntax)
+        filename = QFileDialog.getOpenFileName(None, 'Open a Story File...', '', 'QStory FIles (*.qstory);; QStory Files (*.qstory)')
+        # Read the content and put it into a list with all rows
+        if filename[0] != '':
+            file = open(filename[0], 'r')
+            qstory_header, qstory_body, qstory_location, qstory_zoom = json.load(file)
+            file.close()
+            
+        # Update number of story pages
+        self.dockwidget.cmb_page.clear()
+        print(len(qstory_header))
+        for number in range(1, len(qstory_header) + 1):        # The range function does not include the "end" number. This is why +1
+            self.dockwidget.cmb_page.addItem(str(number))
+            print(qstory_header[number-1])
+         
+        # Update the story pages
+        self.update_page(0)
 
  
     #--------------------------------------------------------------------------
@@ -430,8 +478,8 @@ class QStory:
 
             # Catch events when buttons clicked in panel
             # Each must have corresponding def name():
-            #self.dockwidget.btn_open.clicked.connect(self.)
-            #self.dockwidget.btn_save.clicked.connect(self.)
+            self.dockwidget.btn_open.clicked.connect(self.open_story)
+            self.dockwidget.btn_save.clicked.connect(self.save_story)
             self.dockwidget.btn_delete.clicked.connect(self.delete_page)
             self.dockwidget.btn_previous.clicked.connect(self.previous_page)
             self.dockwidget.btn_next.clicked.connect(self.next_page)
