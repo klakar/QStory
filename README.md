@@ -6,7 +6,7 @@ It is possible to include this functionality into other plug-ins, but after some
 
 This plug-in is a tool to build the story, not the map. Use any tool you want to build your web map (for now qgis2web is recommended) and then this tool to build the story and "apply" it to the web map.
 ## Basic functionality
-The plugin is pointed to a html-file for the web map. In that it looks for the </head> and </body> tags, where it adds some code.
+The plugin is pointed to a html-file for the web map. In that it looks for the &lt;/head&gt; and &lt;/body&gt; tags, where it adds some code.
 
 When the story is generated it will save resource files at the web map location, that is called by the code in the html file.
 ## The plugin principals
