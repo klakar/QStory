@@ -12,7 +12,7 @@ When the story is generated it will save resource files at the web map location,
 ## The plugin principals
 The plugin is a simple form to generate the story "pages". It is only the content that is created, the style and apperance in the end result is controled by selecting a "theme". Themes are folders with resource files that can be anything, but at a minimum there should be a "qstory.css" and a "qstory.js" file.
 
-The plugin generates a couple of list variables that is used in the qstory.js file to generate the story pages. This generation of the lists is independent of which "theme" that is selected. This means the basic structure is pretty simple and the real power is implemented in the resource files.
+The plugin generates a couple of list variables that is used in a pages.js file to generate the story pages. This generation of the lists is independent of which "theme" that is selected. This means the basic structure is pretty simple and the real power is implemented in the resource files.
 
 This also makes it easier to add and modify themes for the plugin in the future. Initially there will be a very limited number of simple themes, and when the basic functionality is setteled you are encouraged to contribute with additional story themes to the project.
 ## Goals
