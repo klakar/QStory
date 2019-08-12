@@ -253,10 +253,9 @@ class QStory:
         self.get_themes()
 
         # Initial Preview "help" text
-        help_text = '<h3>QStory</h3><p>Here there will be some simple "Get Started" text...</p>'
-        # Credits
-        help_text += '<div style="font-size: 10pt;text-decoration: underline; font-weight: bold;">Credits</div>'
-        help_text += '<div style="font-size: 8pt;">Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>'
+        help_file = open(os.path.join(current_dir, 'readme.htm'),'r')
+        help_text = help_file.read()
+        help_file.close()
         self.dockwidget.web_view.setHtml(help_text)
 
         # Set first story page

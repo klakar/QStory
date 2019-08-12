@@ -48,7 +48,7 @@ PY_FILES = \
 
 UI_FILES = qstory_dockwidget_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icon.png readme.htm
 
 EXTRA_DIRS = themes icons
 

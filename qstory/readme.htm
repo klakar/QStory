@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <style>
+            body {
+                font-family: sans-serif;
+            }
+            #credit_title {
+                font-size: 10pt;
+                text-decoration: underline; 
+                font-weight: bold;
+            }
+            #credit_text {
+                font-size: 8pt;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <h2>QStory</h2>
+        <p>
+            Welcome, you brave person...
+        </p>
+        <p>
+            This plugin helps you write a map story for your web maps. The plugin will only create the story and the nessesary dependency files.
+            You will then need to point the plugin towards a web map you already have. You can create your own in QGIS with the qgis2web plugin.
+        </p>
+        <ol>
+            <li>Write story on Code tab</li>
+            <li>Update the location and zoom using the map canvas (pan/zoom then click button)</li>
+            <li>Try different Themes (only a few to start)</li>
+            <li>Save your story to a *.qstory file (optional)</li>
+            <li>Find a web map template to apply the story to (use qgis2web)</li>
+            <li>Generate the new story map (same location as the template)</li>
+        </ol>
+        <h4>Known Limitations</h4>
+        <ul>
+            <li>
+                Current themes are hard coded to JS-libraries (i.e. OpenLayers <u>or</u> Leaflet).
+            </li>
+            <li>
+                For current templates it is assumed you have a map "div" with the id "map".
+            </li>
+            <li>
+                You can't reorder the pages in the plugin.
+            </li>
+            <li>
+                I will only create templates I like and am able to build... (probably very few for Leaflet)
+            </li>
+        </ul>
+        <p>
+            Note that most improvements you will want, can probably be done with JavaScript and CSS. If you want to create your own "theme", just modify the files in the qstory folder in your web map directory.
+        </p>
+        <p>
+            If you have suggestions, want to contribute with JS/CSS themes, or have found something wrong (remember this is experimental), use GitHub to report issues or make a pull request.
+        </p>
+        <h4>Links</h4>
+        <p>
+            <a href="https://github.com/klakar/QStory">Website</a><br>
+            <a href="https://github.com/klakar/QStory/issues">Bug Reports / Suggestions</a><br>
+            <a href="https://github.com/tomchadwin/qgis2web">Grab the qgis2web plugin</a>
+        </p>
+        <h4>Find Me</h4>
+        <p>
+            Twitter: <a href="https://twitter.com/klaskarlsson">@klaskarlsson</a><br>
+            Blogg: <a href="https://geosupportsystem.se">geosupportsystem.se</a>
+        </p>
+        <div id="credit_title">Credits</div>
+        <div id="credit_text">Stole som free icons from Google</a></div>
+    </body>
+</html>
