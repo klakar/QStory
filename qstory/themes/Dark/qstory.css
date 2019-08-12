@@ -1,0 +1,29 @@
+#map {
+    z-index: -1;
+}
+
+#story {
+    position: absolute;
+    z-index: 10;
+    left: 5em;
+    top: 0em;
+    width: 40em;
+    height: 100%;
+    background: #0009;
+    padding: 1em;
+    font-family: sans-serif;
+}
+
+#story_header {
+    font-size: 24pt;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    letter-spacing: 0.5em;
+}
+
+#story_body {
+    font-size: 14pt;
+    height: 80%;
+    color: #fff;
+}

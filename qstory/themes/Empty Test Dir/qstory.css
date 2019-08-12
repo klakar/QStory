@@ -1,0 +1,15 @@
+#story_header {
+    font-family: Sans Serif;
+    font-size: 24pt;
+}
+
+#story {
+    position: absolute;
+    z-index: 10;
+    left: 5em;
+    top: 0em;
+    width: 50em;
+    height: 100%;
+    background: #fff9;
+    padding: 1em;
+}

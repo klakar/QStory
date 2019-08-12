@@ -50,7 +50,7 @@ UI_FILES = qstory_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS =
+EXTRA_DIRS = themes
 
 COMPILED_RESOURCE_FILES = resources.py
 

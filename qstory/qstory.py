@@ -30,12 +30,12 @@ from .resources import *
 # Import the code for the DockWidget
 from .qstory_dockwidget import QStoryDockWidget
 import os.path
-from math import log
+from math import log, exp
 import json
 
 # Import functions from QGIS
 from qgis.utils import iface
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY
 
 
 #------------------------------------------------------------------------
@@ -45,6 +45,7 @@ qstory_body = []            # Content for the story body div-tag
 qstory_location = []        # Map location lon,lat string for the story page
 qstory_zoom = []            # Map zoom level integer for the story page
 current_index = 0           # Currently active page index in the widget
+themes_dir = []             # Folder in the plugin dir for story themes
 
 #------------------------------------------------------------------------
 
@@ -235,11 +236,19 @@ class QStory:
         global qstory_location
         global qstory_zoom
         global current_index
+        global themes_dir
         current_index = 0
         qstory_header.clear()
         qstory_body.clear()
         qstory_location.clear()
         qstory_zoom.clear()
+
+        # Set the global variable for the themes directory
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        themes_dir = os.path.join(current_dir, 'themes')
+
+        # Get the selectable themes from the themes folder
+        self.get_themes()
 
         # Initial Preview "help" text
         help_text = '<h3>QStory</h3><p>Here there will be some simple "Get Started" text...'
@@ -261,6 +270,11 @@ class QStory:
 
     #--------------------------------------------------------------------------
     # QStory Helper functions
+
+    # Get all the themes from the themes folder (in the plugin directory)
+    def get_themes(self):
+        for f in os.listdir(themes_dir):
+            self.dockwidget.cmb_theme.addItem(f)
 
     # Delete the current page and decrease the page numbers
     def delete_page(self):
@@ -335,6 +349,8 @@ class QStory:
         current_index = page_index
         self.dockwidget.cmb_page.setCurrentIndex(page_index)
         
+        # Update the map canvas to the current location and zoom level
+        self.set_center()
 
         # Update button status
         self.update_status(current_index)
@@ -366,9 +382,22 @@ class QStory:
         #export_story += 'story_zoom = %s;\n' % (str(qstory_zoom))
         return export_content
 
+    # Convert coordinate from srsCrs to dstCrs
+    def set_center(self):           #Set the canvas center and scale to approximate page location and zoom level.
+        location_X, location_Y = [float(c) for c in self.dockwidget.txt_center.text().split(',')]
+        center = QgsPointXY(location_X, location_Y)
+        canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
+        qstoryCrs = QgsCoordinateReferenceSystem(4326)
+        transform = QgsCoordinateTransform(qstoryCrs, canvasCrs, QgsProject.instance())
+        canvas_X, canvas_Y = transform.transform(center.x(), center.y())
+        iface.mapCanvas().setCenter(QgsPointXY(canvas_X, canvas_Y))
+        canvas_scale = (591657550.500000 * 2) / (exp(log(2) * int(self.dockwidget.spin_zoom.value())))
+        iface.mapCanvas().zoomScale(canvas_scale)
+        
+
 
     #--------------------------------------------------------------------------
-    # Here are "smaller" functions for the QStory dock widgetfrom qgis.utils import iface
+    # Here are most "first call" functions for the QStory dock widgetfrom qgis.utils import iface
 
 
     def story_generate(self):
@@ -380,9 +409,14 @@ class QStory:
 
 
     def story_content_tab(self):    # Check if the second (preview) tab is active, and in that case update preview of the story page
+        # Get the template CSS file from the themes folder
+        css_file = open(os.path.join(themes_dir, self.dockwidget.cmb_theme.currentText(),'qstory.css'), 'r')
+        css_code = css_file.read()
+        css_file.close()
         if self.dockwidget.tab_widget.currentIndex() == 1:
-            html = '<div id="story_header">' + self.dockwidget.txt_title.text() + '</div>'
-            html += '<div id="story_body">' + self.dockwidget.txt_body.toPlainText() + '</div>' 
+            html = '<style>' + css_code + '</style>'
+            html += '<div id="story"><div id="story_header">' + self.dockwidget.txt_title.text() + '</div>'
+            html += '<div id="story_body">' + self.dockwidget.txt_body.toPlainText() + '</div></div>' 
             self.dockwidget.web_view.setHtml(html)
 
     def get_selected(self):         # Change story page to the one selected in the page combo box
@@ -488,3 +522,4 @@ class QStory:
             self.dockwidget.btn_generate.clicked.connect(self.story_generate)
             self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)
             self.dockwidget.cmb_page.activated[str].connect(self.get_selected)
+            self.dockwidget.cmb_theme.activated[str].connect(self.story_content_tab)

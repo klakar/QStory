@@ -176,7 +176,7 @@
       <item>
        <widget class="QTabWidget" name="tab_widget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -220,6 +220,9 @@ If you include &quot;style&quot; they will override any style from the template.
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QWebView" name="web_view">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(244, 244, 244);</string>
+            </property>
             <property name="url">
              <url>
               <string>about:blank</string>
@@ -378,6 +381,21 @@ If you include &quot;style&quot; they will override any style from the template.
        <widget class="QPushButton" name="btn_generate">
         <property name="text">
          <string>Generate</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="styleSheet">
+         <string notr="true">font-size: 20px;
+color: #f00;
+letter-spacing: 2px;</string>
+        </property>
+        <property name="text">
+         <string>Experimental Alpha Version</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
