@@ -22,3 +22,7 @@ The plugin will only be uploaded to the QGIS repository if there's a possitive r
 
 ## Forks
 If anyone think you can do this better it's quite OK to "steal" the project and use it in other plug-ins (GPL3 license). Just let me know so I can move on to other experiments...
+
+## Download
+You can use the code as a whole, but if you just want to test the plugin as it is right now, you can use the zip-file:
+https://github.com/klakar/QStory/raw/master/qstory/qstory.zip
