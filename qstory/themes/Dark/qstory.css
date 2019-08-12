@@ -5,25 +5,35 @@
 #story {
     position: absolute;
     z-index: 10;
-    left: 5em;
-    top: 0em;
-    width: 40em;
-    height: 100%;
+    bottom: 2em;
+    width: 100%;
+    height: 20em;
     background: #0009;
-    padding: 1em;
     font-family: sans-serif;
 }
 
 #story_header {
-    font-size: 24pt;
+    font-size: 28pt;
     font-weight: bold;
-    text-align: center;
+    text-align: left;
     color: #fff;
-    letter-spacing: 0.5em;
+    padding: 0 0.25em;
+    letter-spacing: 0.25em;
 }
 
 #story_body {
     font-size: 14pt;
-    height: 80%;
+    height: 9em;
     color: #fff;
+    padding: 0 0.5em;
+}
+
+#story_footer {
+    position: absolute;
+    right: 2em;
+    bottom: 1em;
+}
+
+#story_footer {
+    margin: 2px;
 }

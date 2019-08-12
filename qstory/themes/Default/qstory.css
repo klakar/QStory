@@ -10,18 +10,19 @@
     width: 50em;
     height: 100%;
     background: #fff9;
-    padding: 1em;
 }
 
 #story_header {
     font-size: 24pt;
     font-weight: bold;
     text-align: center;
+    padding: 0 1em;
 }
 
 #story_body {
     font-size: 14pt;
     height: 80%;
+    padding: 0 1em;
 }
 
 #story_footer {
@@ -34,5 +35,5 @@
 }
 
 #story_footer button {
-    margin: 5px;
+    margin: 2px;
 }

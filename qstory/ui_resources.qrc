@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/plugins/qstory">
+  <qresource prefix="icons">
     <file>icons/icons8-camera-500.png</file>
     <file>icons/icons8-delete-bin-500.png</file>
     <file>icons/icons8-insert-page-500.png</file>
@@ -8,6 +8,5 @@
     <file>icons/icons8-opened-folder-500.png</file>
     <file>icons/icons8-prev-page-500.png</file>
     <file>icons/icons8-save-as-500.png</file>
-    <file>icon.png</file>
   </qresource>
 </RCC>
