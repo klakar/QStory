@@ -471,10 +471,8 @@ class QStory:
             
         # Update number of story pages
         self.dockwidget.cmb_page.clear()
-        print(len(qstory_header))
         for number in range(1, len(qstory_header) + 1):        # The range function does not include the "end" number. This is why +1
             self.dockwidget.cmb_page.addItem(str(number))
-            print(qstory_header[number-1])
          
         # Update the story pages
         self.update_page(0)
