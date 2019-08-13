@@ -214,6 +214,10 @@ class QStory:
 
         self.pluginIsActive = False
 
+        # Clean up everything
+        self.qstory_initiate()
+        self.update_status(0)
+
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
