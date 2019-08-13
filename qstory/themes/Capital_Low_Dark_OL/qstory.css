@@ -1,0 +1,69 @@
+#map {
+    z-index: -1;
+}
+
+#story {
+    position: absolute;
+    z-index: 10;
+    left: 5em;
+    height: 30em;
+    bottom: 3em;
+    right: 5em;
+}
+
+#story_header {
+    position: absolute;
+    z-index: 11;
+    font-size: 72pt;
+    text-transform: uppercase;
+    color: #0007;
+    letter-spacing: 0.15em;
+    font-weight: bold;
+    text-align: left;
+}
+
+#story_body {
+    position: absolute;
+    z-index: 12;
+    left: 0em;
+    right: 0em;
+    top: 5em;
+    bottom: 2em;
+    font-size: 14pt;
+    overflow: auto;
+    text-align: left;
+    background: #0007;
+    color: #ccc;
+    padding: 1em;
+}
+
+#story_footer {
+    position: absolute;
+    z-index: 13;
+    display: inline-block;
+    bottom: 0em;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#story_footer button {
+    margin: 2px;
+    background-color: #0004;
+    color: #ccc;
+    border: 2px solid #ccc;
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+}
+
+#story_footer button:hover {
+    background-color: #0007;
+}
+
+#story p {
+    margin: 0.5em;
+}
+
+img {
+    width: 100px;
+    padding: 0 1em;
+}

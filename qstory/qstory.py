@@ -586,6 +586,7 @@ class QStory:
             file.close()
 
     def open_story(self):
+        global qstory_header, qstory_body, qstory_location, qstory_zoom
         # Clear global variables
         self.clear_global()
         # Open a QStory file (basically a textfile with JSON syntax)
