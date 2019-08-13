@@ -31,27 +31,28 @@ from .resources import *
 from .qstory_dockwidget import QStoryDockWidget
 import os.path
 from math import log, exp
-import json
-from distutils.dir_util import copy_tree
+import json             # Used to save and open the *.qstory files. It only contains the global list variables defined below
+from distutils.dir_util import copy_tree    # Used to copy Theme folders content to a "qstory" folder on the target web map
 
-# Import functions from QGIS
+# Import functions from QGIS that is used in the plugin
 from qgis.utils import iface
-from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY
+from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsPointXY, Qgis
 
 
-#------------------------------------------------------------------------
-# QStory global variables
+#----------------------------------------------------------------------------------------------------
+# QStory global variables. The first four can be saved to a file, and opened later in the plugin.
 qstory_header = []          # Content for the story header div-tag
 qstory_body = []            # Content for the story body div-tag
 qstory_location = []        # Map location lon,lat string for the story page
 qstory_zoom = []            # Map zoom level integer for the story page
 current_index = 0           # Currently active page index in the widget
 themes_dir = []             # Folder in the plugin dir for story themes
-first_run = True            # Some things should only run once on start...
 
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------
 
-
+"""
+The code is basically generated from the plugin builder plugin and therefor not commented extensively where it is not changed...
+"""
 class QStory:
     """QGIS Plugin Implementation."""
 
@@ -227,8 +228,20 @@ class QStory:
         # remove the toolbar
         del self.toolbar
     
-    #--------------------------------------------------------------------------
-    # QStory initiate functions
+    #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # QStory initiate functions                                                                                                                     INITIATE PLUGIN
+
+    """
+    This is where the plugin main code starts. In the beginning above some global variables are declared and some libraries imported.
+    The code is devided into sections, where this, the first part, is called to initiate the plugin. This happens at start, and if the
+    plugin is reset (restarted).
+
+    - Variables are cleared
+    - Paths to plugin directory and themes directory is stored in a variable
+    - Dropdowns are populated with the installed themes
+    - Readme.htm is loaded into the preview tab
+    - One simple story page is also loaded into the code tab
+    """
     
     def qstory_initiate(self):
         
@@ -253,10 +266,13 @@ class QStory:
         self.get_themes()
 
         # Initial Preview "help" text
-        help_file = open(os.path.join(current_dir, 'readme.htm'),'r')
-        help_text = help_file.read()
-        help_file.close()
-        self.dockwidget.web_view.setHtml(help_text)
+        try:
+            help_file = open(os.path.join(current_dir, 'readme.htm'),'r')
+            help_text = help_file.read()
+            help_file.close()
+            self.dockwidget.web_view.setHtml(help_text)
+        except:
+            iface.messageBar().pushMessage('Read Error','Could not show the ReadMe information...', level=Qgis.Warning, duration=6)
 
         # Set first story page
         self.dockwidget.cmb_page.clear()
@@ -267,20 +283,44 @@ class QStory:
         qstory_location.insert(0, '14,45')
         qstory_zoom.insert(0, 4)
 
-        # Update the widget
-        if not first_run:
-            self.update_page(0)
 
         
 
-    #--------------------------------------------------------------------------
-    # QStory Helper functions
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # QStory Helper functions                                                                                                                           HELPER FUNCTIONS
+
+    """
+    In this section most supporting functions are gathered. If a function is requested more that once, it is probably here
+    as a stand alone function.
+    There may also be other "run once" functions here, if they are more than a few lines of code.
+    This is so that the next section can be as small as possible.
+    """
 
     # Get all the themes from the themes folder (in the plugin directory)
     def get_themes(self):
         self.dockwidget.cmb_theme.clear()
         for f in os.listdir(themes_dir):
             self.dockwidget.cmb_theme.addItem(f)
+
+    # Clear the global variables
+    def clear_global(self):
+        # Use global variables
+        global qstory_header
+        global qstory_body
+        global qstory_location
+        global qstory_zoom
+        global current_index
+
+        current_index = 0
+        qstory_header.clear()
+        qstory_body.clear()
+        qstory_location.clear()
+        qstory_zoom.clear()
+
+
+    """
+    Manage pages
+    """
 
     # Delete the current page and decrease the page numbers
     def delete_page(self):
@@ -329,24 +369,12 @@ class QStory:
         qstory_header.insert(new_page, 'New Title')
         qstory_body.insert(new_page, 'New Content')
         ccX, ccY, ccZ = self.canvas_center()
-        qstory_location.insert(new_page, '%s,%s' % (str(ccX), str(ccY)))
+        qstory_location.insert(new_page, '%s,%s' % (str(round(ccX,4)), str(round(ccY,4))))
         qstory_zoom.insert(new_page, ccZ)
 
         # Show the new page
         self.update_page(new_page)
-        
-    # Canvas center in lon,lat,zoom
-    def canvas_center(self):
-        center = iface.mapCanvas().center()
-        canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
-        qstoryCrs = QgsCoordinateReferenceSystem(4326)
-        transform = QgsCoordinateTransform(canvasCrs, qstoryCrs, QgsProject.instance())
-        canvas_X, canvas_Y = transform.transform(center.x(), center.y())
-        canvas_scale = iface.mapCanvas().scale()
-        canvas_zoom = round(log(591657550.500000 /(canvas_scale/2))/log(2))
-        return canvas_X, canvas_Y, canvas_zoom
-
-
+    
     # Update the current page with the list content for selected page number
     def update_page(self, page_index):
         global current_index
@@ -375,6 +403,45 @@ class QStory:
         # Update preview
         self.story_content_tab()
 
+    """
+    Working with canvas and coordinates.
+    """
+
+    # Canvas center in lon,lat,zoom
+    def canvas_center(self):
+        try:
+            center = iface.mapCanvas().center()
+            canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
+            qstoryCrs = QgsCoordinateReferenceSystem(4326)
+            transform = QgsCoordinateTransform(canvasCrs, qstoryCrs, QgsProject.instance())
+            canvas_X, canvas_Y = transform.transform(center.x(), center.y())
+            canvas_scale = iface.mapCanvas().scale()
+            canvas_zoom = round(log(591657550.500000 /(canvas_scale/2))/log(2))
+            return canvas_X, canvas_Y, canvas_zoom
+        except:
+            iface.messageBar().pushMessage('Canvas Error','Could not get coordinates for the Canvas! Do you have a map open?', level=Qgis.Warning, duration=6)
+
+
+    # Convert coordinate from srsCrs to dstCrs
+    def set_center(self):           #Set the canvas center and scale to approximate page location and zoom level.
+        try:
+            location_X, location_Y = [float(c) for c in self.dockwidget.txt_center.text().split(',')]
+            center = QgsPointXY(location_X, location_Y)
+            canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
+            qstoryCrs = QgsCoordinateReferenceSystem(4326)
+            transform = QgsCoordinateTransform(qstoryCrs, canvasCrs, QgsProject.instance())
+            canvas_X, canvas_Y = transform.transform(center.x(), center.y())
+            iface.mapCanvas().setCenter(QgsPointXY(canvas_X, canvas_Y))
+            canvas_scale = (591657550.500000 * 2) / (exp(log(2) * int(self.dockwidget.spin_zoom.value())))
+            iface.mapCanvas().zoomScale(canvas_scale)
+        except:
+            iface.messageBar().pushMessage('No Location','You need to set a location for this story page!', level=Qgis.Warning, duration=6)
+
+    """
+    Changing the GUI.
+    This is mostly turning buttons active or inactive depending on what page is shown.
+    """
+    
     # Update button and forms active/disable depending on current index
     def update_status(self, page_index):
         if self.dockwidget.cmb_page.count() >= 2:
@@ -385,6 +452,13 @@ class QStory:
         if current_index == self.dockwidget.cmb_page.count()-1:
             self.dockwidget.btn_next.setEnabled(False)
 
+    """
+    Open and Save qstory files.
+    Copy the Themes files to the target folder.
+    Generate JS code for the resulting map file.
+    Generate the new map file and save the result in the same directory as the template with the name "qstory.htm".
+    """
+
     # Generate a story JS variable for export and save-file
     def generate_output(self):
         
@@ -392,26 +466,15 @@ class QStory:
         export_content = [qstory_header, qstory_body, qstory_location, qstory_zoom]
         return export_content
 
-    # Convert coordinate from srsCrs to dstCrs
-    def set_center(self):           #Set the canvas center and scale to approximate page location and zoom level.
-        location_X, location_Y = [float(c) for c in self.dockwidget.txt_center.text().split(',')]
-        center = QgsPointXY(location_X, location_Y)
-        canvasCrs = iface.mapCanvas().mapSettings().destinationCrs()
-        qstoryCrs = QgsCoordinateReferenceSystem(4326)
-        transform = QgsCoordinateTransform(qstoryCrs, canvasCrs, QgsProject.instance())
-        canvas_X, canvas_Y = transform.transform(center.x(), center.y())
-        iface.mapCanvas().setCenter(QgsPointXY(canvas_X, canvas_Y))
-        canvas_scale = (591657550.500000 * 2) / (exp(log(2) * int(self.dockwidget.spin_zoom.value())))
-        iface.mapCanvas().zoomScale(canvas_scale)
-
     # Copy Theme folder to web site folder
     def copy_2_web(self):
         # Create the paths to the web and selected themes dir and copy the content from themes to web (creating the qstory folder)
         web_dir = os.path.join(os.path.dirname(self.dockwidget.html_file.filePath()), 'qstory')
         selected_theme = os.path.join(themes_dir, self.dockwidget.cmb_theme.currentText())
-        print(web_dir)
-        print(selected_theme)
-        copy_tree(selected_theme, web_dir)
+        try:
+            copy_tree(selected_theme, web_dir)
+        except:
+            iface.messageBar().pushMessage('Copy Error','The template files could not be copied to the target folder!', level=Qgis.Warning, duration=6)
 
     # Generate the story JS and save it to "pages.js" in the web folder (in the qstory folder)
     def generate_storyjs(self):
@@ -428,47 +491,65 @@ class QStory:
         try:
             os.mkdir(web_dir)
         except:
-            print('qstory directory already exist...')
+            iface.messageBar().pushMessage('Folder exist','qstory directory already exist in target directory. Overwriting...', level=Qgis.Info, duration=3)
         # Create the pages.js file and write the content to it
-        pages_file = open(os.path.join(web_dir, 'pages.js'), 'w')
-        pages_file.write(js_content)
-        pages_file.close()
-        
+        try:
+            pages_file = open(os.path.join(web_dir, 'pages.js'), 'w')
+            pages_file.write(js_content)
+            pages_file.close()
+        except:
+            iface.messageBar().pushMessage('Error','Could not save the pages.js file!', level=Qgis.Warning, duration=6)
 
-    #--------------------------------------------------------------------------
-    # Here are most "first call" functions for the QStory dock widgetfrom qgis.utils import iface
-
-
-    def story_generate(self):
-        # Start by updating all and move to the first page
-        self.update_page(0)
-
-        # Test if the selected file is valid
-        # Copy Themes folder to web map folder under name "qstory"
-        self.copy_2_web()
-        # Generate pages.js file in the new folder
-        self.generate_storyjs()
+    # Generate the new web map start file
+    def generate_webmap(self):
         # Add reference to css and JS in the web map start file
+        # The code check if the "style_add" string is not already in the file, and if not it replace the /head and /body tags with the strings below.
+        # This creates reference to CSS and JS files, and it creates DIV placeholders for the story.
         style_add = '<link rel="stylesheet" href="./qstory/qstory.css"></head>'
-        js_add = '<div id="story"><div id="story_header">Title</div><div id="story_body"></div><div id="story_footer"></div></div><script src="./qstory/pages.js"></script><script src="./qstory/qstory.js"></script></body>'
+        js_add = '<div id="story"><div id="story_header"></div><div id="story_body"></div><div id="story_footer"></div></div><script src="./qstory/pages.js"></script><script src="./qstory/qstory.js"></script></body>'
         # Read the web file
-        web_file = open(self.dockwidget.html_file.filePath(), 'r')
-        web_content = web_file.read()
-        web_file.close()
-        print(web_content)
-        if web_content.find(style_add):     # If the link to qstory.css exist, do nothing. Otherwise continue...
-            web_content = web_content.replace('</head>', style_add)
-            web_content = web_content.replace('</body>', js_add)
-            # Save the new content to the qstory.htm copy of the web file
-            story_file = open(os.path.join(os.path.dirname(self.dockwidget.html_file.filePath()), 'qstory.htm'),'w')
-            story_file.write(web_content)
-            story_file.close()
+        try:    # Only run the code if a file is selected.
+            web_file = open(self.dockwidget.html_file.filePath(), 'r')
+            web_content = web_file.read()
+            web_file.close()
+            if web_content.find(style_add):     # If the link to qstory.css exist, do nothing. Otherwise continue...
+                web_content = web_content.replace('</head>', style_add)
+                web_content = web_content.replace('</body>', js_add)
+                # Save the new content to the qstory.htm copy of the web file
+                story_file = open(os.path.join(os.path.dirname(self.dockwidget.html_file.filePath()), 'qstory.htm'),'w')
+                story_file.write(web_content)
+                story_file.close()
+        except:
+            iface.messageBar().pushMessage('Error','Could not generate the output qstory.htm file!', level=Qgis.Warning, duration=6)
         """
         The above if statement will not create a new htm file if the file used as a source already have
         the links and placeholders in it. If it have a slightly different string, the new ones will be added anyway.
         If the filename for the source is the same (qstory.htm) the old file will be overritten with the new content.
         """
 
+        
+
+    #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Here are most "first call" functions for the QStory dock widgetfrom qgis.utils import iface                                                                   FIRST CALLS
+
+
+    def story_generate(self):
+        # Only run this if a template file is selected
+        if self.dockwidget.html_file.filePath():
+            # Start by updating all and move to the first page
+            self.update_page(0)
+
+            # Test if the selected file is valid
+            # Copy Themes folder to web map folder under name "qstory"
+            self.copy_2_web()
+            # Generate pages.js file in the new folder
+            self.generate_storyjs()
+            # Generate qstory.htm file in the target folder (same as where the template is located)
+            self.generate_webmap()
+            url_path = os.path.join(os.path.dirname(self.dockwidget.html_file.filePath()), 'qstory.htm')
+            iface.messageBar().pushMessage('Completed','Your story is ready: <a href="%s">%s</a>' % (url_path, url_path), level=Qgis.Info, duration=20)
+        else:
+            iface.messageBar().pushMessage('No Template','You need to select a web map template file first!', level=Qgis.Warning, duration=6)
 
     def story_content_tab(self):    # Check if the second (preview) tab is active, and in that case update preview of the story page
         # Get the template CSS file from the themes folder
@@ -505,18 +586,8 @@ class QStory:
             file.close()
 
     def open_story(self):
-        # Use global variables
-        global qstory_header
-        global qstory_body
-        global qstory_location
-        global qstory_zoom
-
-        current_index = 0
-        qstory_header.clear()
-        qstory_body.clear()
-        qstory_location.clear()
-        qstory_zoom.clear()
-
+        # Clear global variables
+        self.clear_global()
         # Open a QStory file (basically a textfile with JSON syntax)
         filename = QFileDialog.getOpenFileName(None, 'Open a Story File...', '', 'QStory FIles (*.qstory);; QStory Files (*.qstory)')
         # Read the content and put it into a list with all rows
@@ -534,8 +605,8 @@ class QStory:
         self.update_page(0)
 
  
-    #--------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Main plugin start (this is what is run to get things going) creating connections to events in the GUI etc.                                                 START IT ALL!!!
     def run(self):
         """Run method that loads and starts the plugin"""
 
@@ -566,14 +637,14 @@ class QStory:
 
             # Catch events when buttons clicked in panel
             # Each must have corresponding def name():
-            self.dockwidget.btn_open.clicked.connect(self.open_story)
-            self.dockwidget.btn_save.clicked.connect(self.save_story)
-            self.dockwidget.btn_delete.clicked.connect(self.delete_page)
-            self.dockwidget.btn_previous.clicked.connect(self.previous_page)
-            self.dockwidget.btn_next.clicked.connect(self.next_page)
-            self.dockwidget.btn_new.clicked.connect(self.add_page)
-            self.dockwidget.btn_center.clicked.connect(self.get_center)
-            self.dockwidget.btn_generate.clicked.connect(self.story_generate)
-            self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)
-            self.dockwidget.cmb_page.activated[str].connect(self.get_selected)
-            self.dockwidget.cmb_theme.activated[str].connect(self.story_content_tab)
+            self.dockwidget.btn_open.clicked.connect(self.open_story)                               # Open Button
+            self.dockwidget.btn_save.clicked.connect(self.save_story)                               # Save Button
+            self.dockwidget.btn_delete.clicked.connect(self.delete_page)                            # Delete Button
+            self.dockwidget.btn_previous.clicked.connect(self.previous_page)                        # Previous Button
+            self.dockwidget.btn_next.clicked.connect(self.next_page)                                # Next Button
+            self.dockwidget.btn_new.clicked.connect(self.add_page)                                  # New Page Button
+            self.dockwidget.btn_center.clicked.connect(self.get_center)                             # Copy from Canvas Button
+            self.dockwidget.btn_generate.clicked.connect(self.story_generate)                       # Generate Story Map Button
+            self.dockwidget.tab_widget.currentChanged.connect(self.story_content_tab)               # Tab changed for Pages
+            self.dockwidget.cmb_page.activated[str].connect(self.get_selected)                      # Page ComboBox clicked
+            self.dockwidget.cmb_theme.activated[str].connect(self.story_content_tab)                # Theme ComboBox clicked
